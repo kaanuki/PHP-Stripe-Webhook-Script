@@ -11,7 +11,7 @@
  * Some example uses are at the bottom of this document
  * 
  * *****************************************************************************/
-//2019 UPDATE
+//2019 UPDATES - kaanuki
 $stripe = [
     "secret_key"      => $secret_key,
     "publishable_key" => $publishable_key,
