@@ -11,21 +11,48 @@
  * Some example uses are at the bottom of this document
  * 
  * *****************************************************************************/
+//2019 UPDATE
+$stripe = [
+    "secret_key"      => $secret_key,
+    "publishable_key" => $publishable_key,
+  ];
+  
+// Set your secret key: remember to change this to your live secret key in production
+// See your keys here: https://dashboard.stripe.com/account/apikeys
+\Stripe\Stripe::setApiKey($api_key);
 
-		// This function is leveraged to search through the JSON for specific values
-		function searchArrayValueByKey(array $array, $search) {
-			foreach (new RecursiveIteratorIterator(new RecursiveArrayIterator($array)) as $key => $value) {
-			    if ($search === $key)
-				return $value;
-			}
-				return false;
-			}
 
-$input = @file_get_contents("php://input");			// this gets the POST data provided when the webhook pings this page
+// You can find your endpoint's secret in your webhook settings
+$endpoint_secret = 'whsec_...';
 
-$event_json = json_decode($input, TRUE);			// decode the JSON, and TRUE turns it into a multidimensional array
+$payload = @file_get_contents('php://input');
+$sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'];
+$event = null;
 
-$type = searchArrayValueByKey($event_json, 'type'); // Check the type of event sent from Stripe.com - example "charge.succeeded"
+try {
+    $event = \Stripe\Webhook::constructEvent(
+        $payload, $sig_header, $endpoint_secret
+    );
+} catch(\UnexpectedValueException $e) {
+    // Invalid payload
+    http_response_code(400); // PHP 5.4 or greater
+    exit();
+} catch(\Stripe\Error\SignatureVerification $e) {
+    // Invalid signature
+    http_response_code(400); // PHP 5.4 or greater
+    exit();
+}
+
+//::: Do something with $event  :::
+
+
+    $type =  $event['type'];//stripe_webhook_functions.php Uses $type to parse the 
+    
+ echo $type;
+
+//EVENT HANDLER [I place the following switch and correspobding functions in a seperate file and require() it here]
+//require('stripe_webhook_functions.php');
+
 
 switch ($type) {									// depending on the event fired by Stripe, do something different. 
     case "account.updated":
